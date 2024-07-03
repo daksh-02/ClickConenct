@@ -1,1 +1,1 @@
-export const server = "http://localhost:8000/api/v1"
+export const server = "https://backend-v1-inky.vercel.app/api/v1"
