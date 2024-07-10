@@ -1,51 +1,89 @@
 import { server } from "@/constants";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useContext,
+} from "react";
+import { useParams, Link } from "react-router-dom";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import VideoUploadDialog from "./VideoUploadDialog";
 import { useSelector } from "react-redux";
+import { SidebarContext } from "@/App"; // Adjust the import path as necessary
 
 const Video = () => {
+  const isExpanded = useContext(SidebarContext);
   const username = useSelector((state) => state.userInfo.username);
   const { profile } = useParams();
-
+  const [cur, setCur] = useState(profile);
   const [videos, setVideos] = useState([]);
   const [flag, setFlag] = useState(false);
-  const [uploadCount, setUploadCount] = useState(0); // State to trigger useEffect
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef();
 
-  useEffect(() => {
-    const getAllVideos = async () => {
+  const lastVideoElementRef = useCallback(
+    (node) => {
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [hasMore]
+  );
+
+  const getAllVideos = useCallback(
+    async (reset = false) => {
       try {
+        if (reset || cur !== profile) {
+          setCur(profile);
+          setPage(1);
+          setVideos([]);
+        }
         const response = await axios.get(
-          `${server}/videos/${
-            profile.charAt(0) == ":" ? profile.substring(1) : profile
-          }`
+          `${server}/videos/allVideos/${
+            profile.charAt(0) === ":" ? profile.substring(1) : profile
+          }`,
+          {
+            params: { page: reset ? 1 : page, limit: 4, sortType: "ascending" },
+          }
         );
         const res = response.data;
-        console.log(res);
-        setVideos(res.data.videos);
+        setVideos((prevVideos) => {
+          const newVideos = res.data.videos.filter(
+            (video) =>
+              !prevVideos.some((prevVideo) => prevVideo._id === video._id)
+          );
+          return reset ? newVideos : [...prevVideos, ...newVideos];
+        });
+        setHasMore(res.data.nextPage !== null);
       } catch (error) {
         console.error(error);
       }
-    };
+    },
+    [cur, profile, page]
+  );
 
+  useEffect(() => {
     setFlag(
-      (profile.charAt(0) == ":" ? profile.substring(1) : profile) === username
+      (profile.charAt(0) === ":" ? profile.substring(1) : profile) === username
     );
+    getAllVideos(true);
+  }, [profile]);
 
-    getAllVideos();
-  }, [profile, uploadCount]); // Add uploadCount as a dependency
+  useEffect(() => {
+    if (page > 1) {
+      getAllVideos();
+    }
+  }, [page]);
 
   const handleUploadComplete = () => {
-    setUploadCount((prevCount) => prevCount + 1); // Increment the upload count to trigger useEffect
+    getAllVideos(true); // Reset and fetch from the first page
   };
 
   const getTimeDifference = (date) => {
@@ -68,12 +106,12 @@ const Video = () => {
   };
 
   return (
-    <div className="w-full px-4 bg-black text-white min-h-[50vh]">
-      {flag ? (
+    <div className={`w-full px-4 bg-black text-white min-h-[50vh]`}>
+      {flag && (
         <div className="flex w-full py-4">
           <VideoUploadDialog onUploadComplete={handleUploadComplete} />
         </div>
-      ) : null}
+      )}
 
       <div
         className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${
@@ -81,22 +119,29 @@ const Video = () => {
         }`}
       >
         {videos.map((video, index) => (
-          <Card key={index} className="bg-black text-white border-none">
-            <CardHeader className="p-0">
-              <img
-                src={video.thumbnail.url}
-                alt={video.title}
-                className="w-[95%] h-40 object-cover"
-              />
-            </CardHeader>
-            <CardContent className="text-left p-0">
-              <h3 className="text-lg font-bold my-2">{video.title}</h3>
-              <p className="text-sm">
-                {video.views} Views • {getTimeDifference(video.createdAt)}
-              </p>
-            </CardContent>
-          </Card>
+          <Link to={`/video/${video._id}`} key={video._id}>
+            <Card className="bg-black text-white border-none">
+              <CardHeader className="p-0">
+                <img
+                  src={video.thumbnail.url}
+                  alt={video.title}
+                  className={`w-[95%] object-cover ${
+                    !isExpanded ? "h-60" : "h-40"
+                  }`}
+                />
+              </CardHeader>
+              <CardContent className="text-left p-0">
+                <h3 className="text-lg font-bold my-2">{video.title}</h3>
+                <p className="text-sm">
+                  {video.views} Views • {getTimeDifference(video.createdAt)}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
+        <div ref={lastVideoElementRef} className="text-white text-center mt-4">
+          {hasMore && "Loading more videos..."}
+        </div>
       </div>
     </div>
   );

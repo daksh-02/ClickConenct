@@ -52,6 +52,7 @@ const Profile = () => {
     };
     dashboard();
     if (profile !== curUsername) checkSubscription();
+    setActiveTab("Videos")
   }, [profile]);
 
   const toggleSubscription = async () => {

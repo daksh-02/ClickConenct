@@ -2,6 +2,26 @@
   @tailwind components;
   @tailwind utilities;
 
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.aspect-w-16 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-h-9 {
+  aspect-ratio: 16 / 9;
+}
+
+html, body {
+  background-color: #000; /* Set the background to black */
+  color: #fff; /* Set the text color to white */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
 
   @layer base {
     :root {

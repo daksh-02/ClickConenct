@@ -1,3 +1,4 @@
+// main entry file (e.g., index.js)
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
@@ -19,6 +20,7 @@ import {
   Tweet,
   Playlist,
 } from "./comps/Compiled";
+import Videopage from "./pages/Videopage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -30,6 +32,7 @@ const router = createBrowserRouter(
         <Route path="tweet" element={<Tweet />} />
         <Route path="playlist" element={<Playlist />} />
       </Route>
+      <Route path="video/:videoId" element={<Videopage />} />
     </Route>
   )
 );

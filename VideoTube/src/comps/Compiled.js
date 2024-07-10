@@ -8,6 +8,9 @@ import Video from "./Video";
 import Playlist from "./Playlist";
 import Tweet from "./Tweet";
 import Following from "./Following";
+import VideoPlayer from "./VideoPlayer";
+import RecommendedVideos from "./RecommendedVideos";
+import Comments from "./Comments";
 
 export {
   Home,
@@ -20,4 +23,7 @@ export {
   Playlist,
   Tweet,
   Following,
+  VideoPlayer,
+  RecommendedVideos,
+  Comments
 };

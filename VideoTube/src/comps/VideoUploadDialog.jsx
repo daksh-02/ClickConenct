@@ -15,6 +15,7 @@ import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import { server } from "@/constants";
 import { ClipLoader } from "react-spinners";
+// import { uploadOnCloudinary } from "@/utils/cloudinary";
 
 const VideoUploadDialog = ({ onUploadComplete }) => {
   const [videoFileName, setVideoFileName] = useState("");
@@ -83,7 +84,8 @@ const VideoUploadDialog = ({ onUploadComplete }) => {
       });
       formData.append("thumbNail", data.image);
       formData.append("videoFile", data.video);
-
+      // const file = await uploadOnCloudinary(data.path);
+      // console.log(file);
       const response = await axios.post(`${server}/videos/`, formData, {
         withCredentials: true,
       });
