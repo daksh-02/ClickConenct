@@ -12,10 +12,10 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDropzone } from "react-dropzone";
-import axios from "axios";
-import { server } from "@/constants";
 import { ClipLoader } from "react-spinners";
-// import { uploadOnCloudinary } from "@/utils/cloudinary";
+import { uploadToCloudinary } from "@/utils/cloudinary";
+import axios from "axios";
+import { server } from "../constants.js";
 
 const VideoUploadDialog = ({ onUploadComplete }) => {
   const [videoFileName, setVideoFileName] = useState("");
@@ -77,27 +77,42 @@ const VideoUploadDialog = ({ onUploadComplete }) => {
   const onSubmit = async (data) => {
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      Object.keys(data).forEach((key) => {
-        if (key === "title" || key === "description")
-          formData.append(key, data[key]);
-      });
-      formData.append("thumbNail", data.image);
-      formData.append("videoFile", data.video);
-      // const file = await uploadOnCloudinary(data.path);
-      // console.log(file);
+
+      // Upload thumbnail to Cloudinary
+      const thumbnailUploadResponse = await uploadToCloudinary(data.image);
+
+      const thumbnail = {
+        url: thumbnailUploadResponse.secure_url,
+        public_id: thumbnailUploadResponse.public_id,
+      };
+
+      // Upload video to Cloudinary
+      const videoUploadResponse = await uploadToCloudinary(data.video);
+      console.log(videoUploadResponse);
+      const videoFile = {
+        url: videoUploadResponse.secure_url,
+        public_id: videoUploadResponse.public_id,
+      };
+      // Prepare data for server
+      const formData = {
+        title: data.title,
+        description: data.description,
+        thumbNail: thumbnail,
+        videoFile: videoFile,
+      };
+
       const response = await axios.post(`${server}/videos/`, formData, {
         withCredentials: true,
       });
 
-      const res = response.data;
-      console.log(res);
+      console.log(response.data);
+
       reset();
       setVideoFileName("");
       setImageFileName("");
       setIsUploading(false);
       setDialogOpen(false);
-      onUploadComplete(); // Trigger the callback to notify the parent component
+      onUploadComplete();
     } catch (error) {
       console.log(error);
       setIsUploading(false);

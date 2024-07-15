@@ -20,6 +20,8 @@ import axios from "axios";
 import { server } from "@/constants";
 import { useSelector } from "react-redux";
 import { LiaUserEditSolid } from "react-icons/lia";
+import PlaylistDialog from "./PlaylistDialog";
+import { Play } from "lucide-react";
 
 const PlayerDetail = ({ video }) => {
   const curUsername = useSelector((state) => state.userInfo.username);
@@ -71,7 +73,6 @@ const PlayerDetail = ({ video }) => {
             { withCredentials: true }
           );
           setLike(isLiked.data.data.isLiked);
-          console.log(isLiked.data);
         }
       } catch (error) {
         console.log("Unable to fetch likes", error);
@@ -87,7 +88,6 @@ const PlayerDetail = ({ video }) => {
         {},
         { withCredentials: true }
       );
-      console.log(response.data);
       setIsSubscribed(!isSubscribed);
     } catch (error) {}
   };
@@ -103,7 +103,6 @@ const PlayerDetail = ({ video }) => {
         );
         const res = response.data;
         setIsSubscribed(res.data.status);
-        console.log(res);
       } catch (error) {
         console.log(error);
       }
@@ -152,10 +151,7 @@ const PlayerDetail = ({ video }) => {
                 )}
               </button>
             </div>
-            <Button variant="secondary" className="ml-4">
-              <AiOutlineSave className="mr-2" size={18} />
-              <span className="font-bold">Save</span>
-            </Button>
+            <PlaylistDialog videoId={videoId} />
           </div>
         </div>
         {video && (
