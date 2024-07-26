@@ -6,6 +6,8 @@ import { RxCross1 } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 import { setWatchHistory } from "@/store/UserSlice";
 import PlaylistDialog from "@/comps/PlaylistDialog";
+import { Button } from "@/components/ui/button";
+import { AiOutlineSave } from "react-icons/ai";
 
 const WatchHistoryCard = ({ videoId }) => {
   const dispatch = useDispatch();
@@ -34,7 +36,15 @@ const WatchHistoryCard = ({ videoId }) => {
     <div className="relative w-full">
       {video ? <VideoCard video={video} /> : null}
       <div className="absolute top-2 right-14 flex items-center space-x-2 mr-10">
-        <PlaylistDialog videoId={videoId} />
+        <PlaylistDialog
+          videoId={videoId}
+          presentCheckBox={true}
+          customTrigger={
+            <Button variant="secondary" className="ml-4">
+              <AiOutlineSave size={20} />
+            </Button>
+          }
+        />
         <button className="p-2  text-white rounded-full" onClick={handleDelete}>
           <RxCross1 size={18} />
         </button>

@@ -10,39 +10,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { logout } from "@/store/UserSlice";
+import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { server } from "@/constants";
-import { useDispatch } from "react-redux";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
-const Logout = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const handleLogout = async () => {
+const VideoDelete = ({ _id, handleChange }) => {
+  const handleDelete = async () => {
     try {
-      const response = await axios.post(
-        `${server}/users/logout`,
-        {},
-        { withCredentials: true }
-      );
-      if (response.status === 200) {
-        dispatch(logout());
-      }
-      navigate("/");
+      const response = await axios.delete(`${server}/videos/${_id}`, {
+        withCredentials: true,
+      });
+      handleChange(_id);
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.log("Could not delete comment", error);
     }
   };
+
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <Button className="bg-purple-500  hover:bg-purple-700">Logout</Button>
+        <MdDelete size={20} color="red" />
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-black">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Do you want to delete this video?</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogDescription></AlertDialogDescription>
         <AlertDialogFooter>
@@ -51,7 +42,7 @@ const Logout = () => {
           </AlertDialogCancel>
           <AlertDialogAction
             className="bg-purple-500 hover:bg-purple-700"
-            onClick={handleLogout}
+            onClick={handleDelete}
           >
             Continue
           </AlertDialogAction>
@@ -61,4 +52,4 @@ const Logout = () => {
   );
 };
 
-export default Logout;
+export default VideoDelete;

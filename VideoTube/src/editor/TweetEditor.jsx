@@ -8,7 +8,7 @@ import { server } from "@/constants";
 import axios from "axios";
 import DOMPurify from "dompurify";
 
-const TweetEditor = () => {
+const TweetEditor = ({ addTweet }) => {
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const quillRef = useRef(null);
@@ -39,7 +39,7 @@ const TweetEditor = () => {
       );
       const res = response.data;
       setContent("");
-      console.log(res);
+      addTweet({tweet:res.data});
     } catch (error) {
       console.error("Failed to add tweet", error);
     }

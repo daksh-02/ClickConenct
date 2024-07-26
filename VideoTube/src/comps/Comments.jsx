@@ -5,6 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import ConnentEditor from "../editor/CommentEditor.jsx";
 import CommentDelete from "@/alerts/CommentDelete.jsx";
 import { useSelector } from "react-redux";
+import defuser from "../assets/defuser.jpg";
 
 const CommentSection = () => {
   const username = useSelector((state) => state.userInfo.username);
@@ -15,6 +16,11 @@ const CommentSection = () => {
   const uniqueCommentIds = useRef(new Set());
   const observer = useRef();
   const [totalComments, setTotalComments] = useState(0);
+
+  const delComments = ({ _id }) => {
+    const nComments = comments.filter((comment) => comment._id !== _id);
+    setComments(nComments);
+  };
 
   const lastCommentElementRef = useCallback(
     (node) => {
@@ -91,7 +97,7 @@ const CommentSection = () => {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center">
                       <img
-                        src={comment.ownerDetails.avatar}
+                        src={comment.ownerDetails.avatar || defuser}
                         alt={comment.ownerDetails.username}
                         className="w-10 h-10 rounded-full mr-2 hover:border-2 border-purple-500"
                       />
@@ -114,7 +120,7 @@ const CommentSection = () => {
 
               {username === comment.ownerDetails.username ? (
                 <div className="absolute top-4 right-4">
-                  <CommentDelete _id={comment._id} />
+                  <CommentDelete _id={comment._id} delComments = {delComments}/>
                 </div>
               ) : null}
             </li>

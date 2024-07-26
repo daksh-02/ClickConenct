@@ -7,7 +7,6 @@ import { Provider } from "react-redux";
 import store from "./store/Store.js";
 import {
   Route,
-  Router,
   RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
@@ -19,8 +18,19 @@ import {
   Following,
   Tweet,
   Playlist,
+  Password,
+  MyDetails,
 } from "./comps/Compiled";
-import { SearchPage, Videopage, WatchHistoryPage } from "./pages/Compiled.js";
+import {
+  SearchPage,
+  Videopage,
+  WatchHistoryPage,
+  PlaylistPage,
+  LikedVidoesPage,
+  StatsPage,
+  SettingsPage,
+  SupportPage,
+} from "./pages/Compiled.js";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,6 +45,14 @@ const router = createBrowserRouter(
       <Route path="video/:videoId" element={<Videopage />} />
       <Route path="find/:user" element={<SearchPage />} />
       <Route path="watchHistory" element={<WatchHistoryPage />} />
+      <Route path="playlist/:playlistId" element={<PlaylistPage />} />
+      <Route path="likedVideos" element={<LikedVidoesPage />} />
+      <Route path="myVidoes" element={<StatsPage />} />
+      <Route path="settings" element={<SettingsPage />}>
+        <Route index element={<MyDetails />} />
+        <Route path="password" element={<Password />}></Route>
+      </Route>
+      <Route path="support" element={<SupportPage />} />
     </Route>
   )
 );

@@ -11,6 +11,8 @@ import Following from "./Following";
 import VideoPlayer from "./VideoPlayer";
 import RecommendedVideos from "./RecommendedVideos";
 import Comments from "./Comments";
+import MyDetails from "./MyDetails";
+import Password from "./Password";
 
 export {
   Home,
@@ -25,5 +27,7 @@ export {
   Following,
   VideoPlayer,
   RecommendedVideos,
-  Comments
+  Comments,
+  MyDetails,
+  Password,
 };

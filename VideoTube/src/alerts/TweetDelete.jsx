@@ -14,14 +14,13 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { server } from "@/constants";
 
-const TweetDelete = ({ _id, handleChange }) => {
+const TweetDelete = ({ _id,delTweet}) => {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(`${server}/tweets/${_id}`, {
         withCredentials: true,
       });
-      console.log(response);
-      handleChange();
+      delTweet({_id})
     } catch (error) {
       console.log("Could not delete comment", error);
     }
@@ -34,13 +33,9 @@ const TweetDelete = ({ _id, handleChange }) => {
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-black">
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            Do you want to delete this comment?
-          </AlertDialogTitle>
+          <AlertDialogTitle>Do you want to delete this Tweet?</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogDescription>
-          Note: tweet might not get deleted instantly please try refereshing the
-          page
         </AlertDialogDescription>
         <AlertDialogFooter>
           <AlertDialogCancel className="bg-white text-black">

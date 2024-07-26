@@ -8,7 +8,8 @@ import ProfilePageTweetCard from "@/Card/ProfilePageTweetCard";
 
 const Tweet = () => {
   const { profile } = useParams();
-  const username = useSelector((state) => state.userInfo.username);
+  const  username  = useSelector((state) => state.userInfo);
+  const userAvatar = useSelector((state) => state.userInfo.avatar);
   const [tweets, setTweets] = useState([]);
   const [avatar, setAvatar] = useState();
   const [curUsername, setCurUsername] = useState();
@@ -17,8 +18,23 @@ const Tweet = () => {
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef();
 
-  const changeChange = () => {
-    setChange((prev) => prev + 1);
+  const addTweet = ({ tweet }) => {
+    const Tweetobj = {
+      content: tweet.tweet.content,
+      username,
+      avatar: userAvatar,
+      published: tweet.tweet.createdAt,
+      _id: tweet.tweet._id,
+      initialLikes: 0,
+      initialIsLiked: false,
+    };
+    const nTweet = [Tweetobj, ...tweets];
+    setTweets(nTweet);
+  };
+
+  const delTweet = ({ _id }) => {
+    const nTweet = tweets.filter((tweet) => tweet._id !== _id);
+    setTweets(nTweet);
   };
 
   const lastTweetElementRef = useCallback(
@@ -31,7 +47,7 @@ const Tweet = () => {
       });
       if (node) observer.current.observe(node);
     },
-    [hasMore]
+    [hasMore, change]
   );
 
   useEffect(() => {
@@ -59,7 +75,7 @@ const Tweet = () => {
 
   return (
     <div className="w-full h-full bg-black">
-      {username === profile ? <TweetEditor /> : null}
+      {username === profile ? <TweetEditor addTweet={addTweet} /> : null}
       {tweets.length > 0
         ? tweets.map((tweet, index) => {
             if (tweets.length === index + 1) {
@@ -73,7 +89,7 @@ const Tweet = () => {
                     initialLikes={tweet.likeCount}
                     initialIsLiked={tweet.isLiked}
                     _id={tweet._id}
-                    handleChange={changeChange}
+                    delTweet={delTweet}
                   />
                 </div>
               );
@@ -88,7 +104,7 @@ const Tweet = () => {
                   initialLikes={tweet.likeCount}
                   initialIsLiked={tweet.isLiked}
                   _id={tweet._id}
-                  handleChange={changeChange}
+                  delTweet={delTweet}
                 />
               );
             }

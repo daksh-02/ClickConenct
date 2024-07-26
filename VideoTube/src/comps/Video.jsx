@@ -45,12 +45,18 @@ const Video = () => {
           setPage(1);
           setVideos([]);
         }
+        const isOwnProfile = profile === username;
         const response = await axios.get(
           `${server}/videos/allVideos/${
             profile.charAt(0) === ":" ? profile.substring(1) : profile
           }`,
           {
-            params: { page: reset ? 1 : page, limit: 4, sortType: "ascending" },
+            params: {
+              page: reset ? 1 : page,
+              limit: 4,
+              sortType: "ascending",
+              isOwnProfile,
+            },
           }
         );
         const res = response.data;
@@ -66,7 +72,7 @@ const Video = () => {
         console.error(error);
       }
     },
-    [cur, profile, page]
+    [cur, profile, page, username]
   );
 
   useEffect(() => {

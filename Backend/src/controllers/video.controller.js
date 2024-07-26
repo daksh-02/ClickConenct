@@ -9,6 +9,12 @@ import { Like } from "../models/like.model.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { username } = req.params;
+  const {
+    page = 1,
+    limit = 8,
+    sortType = "ascending",
+    isOwnProfile,
+  } = req.query;
 
   const user = await User.findOne({ username });
 
@@ -17,13 +23,19 @@ const getAllVideos = asyncHandler(async (req, res) => {
   }
 
   const userId = user._id;
-  const { page = 1, limit = 8, sortType = "ascending" } = req.query;
+
+  // Determine the match criteria based on the `isOwnProfile` flag
+  const matchCriteria = {
+    owner: new mongoose.Types.ObjectId(userId),
+  };
+
+  if (!isOwnProfile) {
+    matchCriteria.isPublished = true;
+  }
 
   const videos = await Video.aggregate([
     {
-      $match: {
-        owner: new mongoose.Types.ObjectId(userId),
-      },
+      $match: matchCriteria,
     },
     {
       $sort: {
@@ -38,7 +50,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     },
   ]);
 
-  const totalVideos = await Video.countDocuments({ owner: userId });
+  const totalVideos = await Video.countDocuments(matchCriteria);
 
   if (!videos) {
     throw new ApiError(404, "No videos found");
@@ -132,21 +144,12 @@ const updateVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No such Video exist");
   }
 
-  const { title, description } = req.body;
-  const thumbNAilPath = req.file?.path;
+  const { title, description, thumbnail } = req.body;
 
-  if (!thumbNAilPath) {
-    throw new ApiError(400, "Thumbnail is required");
+  if (thumbnail) {
+    await deleteOnCloudinary(video.thumbnail);
+    video.thumbnail = thumbnail;
   }
-
-  const thumbNail = await uploadOnCloudinary(thumbNAilPath);
-  if (!thumbNail) {
-    throw new ApiError(400, "Thumbnail is required");
-  }
-
-  await deleteOnCloudinary(video.thumbnail);
-
-  video.thumbnail = thumbNail.url;
   if (title) video.title = title;
   if (description) video.description = description;
 

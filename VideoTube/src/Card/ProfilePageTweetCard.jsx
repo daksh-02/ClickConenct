@@ -19,7 +19,7 @@ const ProfilePageTweetCard = ({
   initialLikes,
   initialIsLiked,
   _id,
-  handleChange,
+  delTweet
 }) => {
   const curuser = useSelector((state) => state.userInfo.username);
   const [isLiked, setIsLiked] = useState(initialIsLiked || 0);
@@ -97,7 +97,7 @@ const ProfilePageTweetCard = ({
         </div>
         {curuser === username ? (
           <div className="mr-10">
-            <TweetDelete _id={_id} handleChange={handleChange} />
+            <TweetDelete _id={_id} delTweet ={delTweet}/>
           </div>
         ) : null}
       </div>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CiSearch } from "react-icons/ci";
 import { RxCross1 } from "react-icons/rx";
 import { Input } from "@/components/ui/input";
+import CCLogo from "../assets/CCLogo.png"
 
 const Navbar = () => {
   const { isLoggedIn, avatar, username } = useSelector(
@@ -40,7 +41,7 @@ const Navbar = () => {
   return (
     <nav className="bg-black text-white flex items-center justify-between p-4 border-b border-white">
       <div className="flex items-center space-x-4">
-        <img src="/path/to/logo.png" alt="Logo" className="h-10" />
+        <img src={CCLogo} alt="Logo" className="h-[40px]" />
       </div>
       <div className="flex-grow flex justify-center items-center">
         <div className="relative w-full max-w-md flex">

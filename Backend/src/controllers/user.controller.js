@@ -28,24 +28,24 @@ const genrateAccessAndRefreshTokens = async (userId) => {
 };
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
-  console.log("Hey its me goku");
-  if (!email && !username) {
-    throw new ApiError(400, "username or password is required");
-  }
+  const { username, password } = req.body;
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    username,
   });
 
   if (!user) {
-    throw new ApiError(404, "user not found");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, { message: "Invalid Username" }, "faliure"));
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(401, "Incorrect password");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, { message: "Incorret Password" }, "faliure"));
   }
 
   const { accessToken, refreshToken } = await genrateAccessAndRefreshTokens(
@@ -62,7 +62,7 @@ const loginUser = asyncHandler(async (req, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // 'None' for cross-site requests in production
     domain:
       process.env.NODE_ENV === "production"
-        ? "backend-v1-inky.vercel.app"
+        ? "backend-v2-vert.vercel.app"
         : undefined, // Set your domain in production
   };
 
@@ -104,46 +104,30 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
-  console.log(req.files);
-  if (
-    [fullName, email, username, password].some((field) => field?.trim() === "")
-  ) {
-    throw new ApiError(400, "All fields are required");
-  }
 
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
   if (existedUser) {
-    throw new ApiError(409, "User with email or username already exists");
+    res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          { message: "User with email or username already exists" },
+          "Fail"
+        )
+      );
   }
-
-  const avatarLocalPath = req.files
-    ? req.files.avatar
-      ? req.files.avatar[0]
-      : null
-    : null;
-  const coverImageLocalPath = req.files
-    ? req.files.coverImage
-      ? req.files.coverImage[0]
-      : null
-    : null;
-
-  const avatar = avatarLocalPath
-    ? await uploadOnCloudinary(avatarLocalPath)
-    : null;
-  const coverImage = coverImageLocalPath
-    ? await uploadOnCloudinary(coverImageLocalPath)
-    : null;
 
   const user = await User.create({
     fullName,
-    avatar: avatar?.url || "",
-    coverImage: coverImage?.url || "",
+    avatar: "",
+    coverImage: "",
     email,
     password,
-    username: username.toLowerCase(),
+    username: username,
   });
 
   const createdUser = await User.findById(user._id).select(
@@ -213,9 +197,12 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id);
 
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-
   if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid old password");
+    res
+      .status(400)
+      .json(
+        new ApiResponse(400, { message: "Old password is incorrect" }, "Fail")
+      );
   }
 
   user.password = newPassword;
@@ -233,22 +220,33 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullName, email } = req.body;
+  const { fullName, email, username } = req.body;
 
-  if (!fullName || !email) {
-    throw new ApiError(400, "All fields are required");
+  const existsUsername = await User.exists({ username });
+
+  const existsEmail = await User.exists({ email });
+
+  if (existsUsername) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, { message: "Username already exists" }));
   }
 
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        fullName,
-        email,
-      },
-    },
-    { new: true }
-  ).select("-password");
+  if (existsEmail) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, { message: "Email already exists" }));
+  }
+
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
+
+  if (fullName) user.fullName = fullName;
+  if (email) user.email = email;
+  if (username) user.username = username;
+
+  await user.save();
 
   return res
     .status(200)
@@ -258,29 +256,15 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateAvatarImage = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+  const { avatar } = req.body;
 
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar file is missing");
-  }
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  user.avatar = avatar;
 
-  if (!avatar.url) {
-    throw new ApiError(400, "Error while uploading on avatar");
-  }
-
-  await deleteOnCloudinary(req.user.avatar);
-
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        avatar: avatar.url,
-      },
-    },
-    { new: true }
-  ).select("-password");
+  await user.save();
 
   return res
     .status(200)
@@ -288,29 +272,15 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
-  const coverImageLocalPath = req.file?.path;
+  const { coverImage } = req.body;
 
-  if (!coverImageLocalPath) {
-    throw new ApiError(400, "Cover image file is missing");
-  }
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
 
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+  user.coverImage = coverImage.url;
 
-  if (!coverImage.url) {
-    throw new ApiError(400, "Error while uploading on avatar");
-  }
-
-  await deleteOnCloudinary(req.user.coverImage);
-
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        coverImage: coverImage.url,
-      },
-    },
-    { new: true }
-  ).select("-password");
+  await user.save();
 
   return res
     .status(200)
@@ -451,7 +421,7 @@ const getUserSubscribedVideos = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  
+
   if (!channelsSubscribed) {
     throw new ApiError(500, "Unable to fetch subscribed channel list");
   }
@@ -538,5 +508,5 @@ export {
   getUserChannelProfile,
   getWatchHistory,
   getUserSubscribedVideos,
-  genrateAccessAndRefreshTokens
+  genrateAccessAndRefreshTokens,
 };

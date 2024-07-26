@@ -14,13 +14,13 @@ import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { server } from "@/constants";
 
-const CommentDelete = ({ _id }) => {
+const CommentDelete = ({ _id, delComments }) => {
   const handleDelete = async () => {
     try {
       await axios.delete(`${server}/comments/c/${_id}`, {
         withCredentials: true,
       });
-      window.location.reload(); // Refresh the page to see the changes
+      delComments({ _id });
     } catch (error) {
       console.log("Could not delete comment", error);
     }
